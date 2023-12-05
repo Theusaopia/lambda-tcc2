@@ -1,23 +1,27 @@
-import json, boto3, time
+import json
+import boto3
+import time
 
 aws_access_key_id = ''
 aws_secret_access_key = ''
 region_name = 'sa-east-1'
 
-ec2 = boto3.resource('ec2', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, region_name=region_name)
-s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, region_name=region_name)
+ec2 = boto3.resource('ec2', aws_access_key_id=aws_access_key_id,
+                     aws_secret_access_key=aws_secret_access_key, region_name=region_name)
+s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id,
+                  aws_secret_access_key=aws_secret_access_key, region_name=region_name)
 
 
 def lambda_handler(event, context):
     id_exec = event["id_exec"]
-    
+
     user_data = f'''#!/bin/bash
     cd /home/ec2-user
     sudo yum update -y
     sudo yum install java-17-amazon-corretto -y
-    export AWS_ACCESS_KEY_ID=AKIA23HSILAQM5FUV5E5
-    export AWS_SECRET_ACCESS_KEY=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
-    export AWS_DEFAULT_REGION=us-east-1
+    export AWS_ACCESS_KEY_ID={aws_access_key_id}
+    export AWS_SECRET_ACCESS_KEY={aws_secret_access_key}
+    export AWS_DEFAULT_REGION={region_name}
     aws s3 cp s3://bucket-rdf/jar/{id_exec} /home/ec2-user/sddms --recursive #id ao invez de origin
     cd sddms
     java -jar sddms-0.0.1-SNAPSHOT.jar
@@ -57,12 +61,10 @@ def lambda_handler(event, context):
 
     while instance.public_dns_name == "":
         instance.reload()
-    
+
     instance_public_dns = instance.public_dns_name
-        
 
     return {
         'statusCode': 200,
         'body': json.dumps(f'http://{instance_public_dns}:8080/sddms')
     }
-
